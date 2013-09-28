@@ -1,0 +1,34 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+
+import nowplaying
+
+class App(object):
+	def __init__(self, api_key, api_url = "http://np.malte70.de/api/"):
+		self.client = nowplaying.NowPlayingClient(api_key)
+		self.client.api_url = api_url
+		
+	def sendTrack(self, i, t):
+		self.client.sendTrack(i, t)
+		
+	def mainLoop(self):
+		oldsong = ''
+		newsong = commands.getstatusoutput('mpc current')[1]
+		try:
+			while True:
+				newsong = commands.getstatusoutput('mpc current')[1]
+				if oldsong!=newsong and newsong != "":
+					status = api.PostUpdate('#NowPlaying '+newsong+' via mpd')
+					oldsong = newsong
+					_interpreter, _title = newsong.split(" - ")
+					self.sendTrack(_interpreter, _title)
+				time.sleep(1)
+		except KeyboardInterrupt:
+			pass
+
+def main():
+	app = App("ABCDE")
+	app.mainLoop()
+
+if __name__=="__main__":
+	main()
