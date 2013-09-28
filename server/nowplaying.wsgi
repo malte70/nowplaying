@@ -55,6 +55,7 @@ def nl2br(text, is_xhtml = False):
 	
 @npApp.route("/")
 def home():
+	# get the last 6 played tracks from MySQL database
 	db = MySQLdb.connect(
 			host=CFG_MYSQL_HOST,
 			user=CFG_MYSQL_USER,
@@ -65,6 +66,7 @@ def home():
 	db_curs.execute("SELECT interpreter,title FROM log ORDER BY id DESC LIMIT 0,6;")
 	db.close()
 	_log = db_curs.fetchall()
+	# _current is the one displayed in the jumbotron, _content contains the 5 others displayed.
 	_current = _log[0][0]+" – "+_log[0][1]
 	_content = '<ul class="list-group">'
 	for logentry in _log[1:]:
@@ -74,12 +76,15 @@ def home():
 
 @npApp.route("/api/:apikey#[a-zA-Z0-9-_]+#", method="POST")
 def api(apikey=None):
+	# About with status 403 if the API key is wrong
 	if apikey != CFG_API_KEY:
 		bottle.abort(403)
 	else:
+		# get time and form data
 		np_current_time = time.strftime('%Y-%m-%d %H:%M:%S')
 		np_interpreter  = MySQLdb.escape_string(bottle.request.forms.get("interpreter"))
 		np_title        = MySQLdb.escape_string(bottle.request.forms.get("title"))
+		# write track to the database
 		db = MySQLdb.connect(
 				host=CFG_MYSQL_HOST,
 				user=CFG_MYSQL_USER,
@@ -90,6 +95,7 @@ def api(apikey=None):
 		db_curs.execute("INSERT INTO log VALUES (NULL, \""+np_current_time+"\", \""+np_interpreter+"\", \""+np_title+"\");")
 		db.commit()
 		db.close()
+		# if twitter is enabled, tweet the song!
 		if CFG_TWITTER_ENABLED:
 			api = twitter.Api(
 				consumer_key=CFG_TWITTER_CONSUMER_KEY,
@@ -101,5 +107,6 @@ def api(apikey=None):
 			api.PostUpdate(tweet)
 		return "Done.\n"
 
+# needed for WSGI
 application = npApp
 
