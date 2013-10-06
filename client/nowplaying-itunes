@@ -1,0 +1,45 @@
+#!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
+#
+# NowPlaying Client for iTunes (on OS X only)
+
+import nowplaying
+
+import sys
+import time
+import appscript
+
+class App(object):
+	def __init__(self, api_key, api_url = "http://np.malte70.de/api/"):
+		self.client = nowplaying.NowPlayingClient(api_key)
+		self.client.api_url = api_url
+		
+	def getCurrentiTunesSong(self):
+		itunes = appscript.app('iTunes')
+		if str(itunes.player_state())!='k.stopped':
+			return [itunes.current_track.artist(), itunes.current_track.name()]
+		else:
+			return ""
+		
+	def sendTrack(self, i, t):
+		self.client.sendTrack(i, t)
+
+	def main():
+		oldsong = ''
+		newsong = getCurrentiTunesSong()
+		while True:
+			newsong = getCurrentiTunesSong()
+			if oldsong!=newsong and newsong != "":
+				self.sendTrack(newsong[0], newsong[1])
+				oldsong = newsong
+		time.sleep(1)
+
+def main():
+	app = App("ABCDE")
+	try:
+		app.mainLoop()
+	except KeyboardInterrupt:
+		sys.exit(0)
+
+if __name__=='__main__':
+	main()
