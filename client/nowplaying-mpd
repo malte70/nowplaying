@@ -3,12 +3,18 @@
 #
 # NowPlaying Client for MPD (Music Player Daemon)
 
+import commands
+import time
+import sys
 import nowplaying
 
 class App(object):
 	def __init__(self, api_key, api_url = "http://np.malte70.de/api/"):
 		self.client = nowplaying.NowPlayingClient(api_key)
 		self.client.api_url = api_url
+		
+	def getCurrentTrack(self):
+		return commands.getstatusoutput('mpc current')[1]
 		
 	def sendTrack(self, i, t):
 		self.client.sendTrack(i, t)
@@ -19,12 +25,10 @@ class App(object):
 		send it to the API.
 		"""
 		oldsong = ''
-		newsong = commands.getstatusoutput('mpc current')[1]
 		try:
 			while True:
-				newsong = commands.getstatusoutput('mpc current')[1]
+				newsong = self.getCurrentTrack
 				if oldsong!=newsong and newsong != "":
-					status = api.PostUpdate('#NowPlaying '+newsong+' via mpd')
 					oldsong = newsong
 					_interpreter, _title = newsong.split(" - ")
 					self.sendTrack(_interpreter, _title)
