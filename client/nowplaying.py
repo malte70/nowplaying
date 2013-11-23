@@ -25,7 +25,7 @@ class NowPlayingClient(object):
 	def __init__(self, api_key):
 		self.api_key = api_key
 		
-	def sendTrack(self, interpreter, title):
+	def sendTrack(self, interpreter, title, link=None):
 		"""
 		send a track to the API
 		"""
@@ -34,7 +34,8 @@ class NowPlayingClient(object):
 						self.api_base_url+self.api_key,
 						urllib.urlencode({
 							'interpreter': interpreter,
-							'title': title
+							'title': title,
+							'link': link
 						}))
 					).read()
 
@@ -42,15 +43,19 @@ def main():
 	"""
 	simple command line client.
 	"""
-	if len(sys.argv)!=3:
-		print "usage: nowplaying \"Interpreter\" \"Title\""
+	if not len(sys.argv) in (3, 4):
+		print "usage: nowplaying \"Interpreter\" \"Title\" [\"link\"]"
 		sys.exit(1)
 	interpreter = sys.argv[1]
 	title = sys.argv[2]
+	if len(sys.argv) == 4:
+		link = sys.argv[3]
+	else:
+		link = None
 	
 	global APIKEY
 	client = NowPlayingClient(APIKEY)
-	ret = client.sendTrack(interpreter, title)
+	ret = client.sendTrack(interpreter, title, link)
 	if ret == "Done.\n":
 		sys.exit(0)
 	else:

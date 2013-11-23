@@ -63,14 +63,25 @@ def home():
 			db=CFG_MYSQL_DB
 			)
 	db_curs = db.cursor()
-	db_curs.execute("SELECT interpreter,title FROM log ORDER BY id DESC LIMIT 0,6;")
+	db_curs.execute("SELECT interpreter,title,link FROM log ORDER BY id DESC LIMIT 0,6;")
 	db.close()
 	_log = db_curs.fetchall()
 	# _current is the one displayed in the jumbotron, _content contains the 5 others displayed.
+	_current = ""
+	if _log[0][2] != None:
+		_current += "<a href=\""+_log[0][2]+"\">"
 	_current = _log[0][0]+" – "+_log[0][1]
+	if _log[0][2] != None:
+		_current += "</a>"
 	_content = '<ul class="list-group">'
 	for logentry in _log[1:]:
-		_content += '<li class="list-group-item">'+logentry[0]+' – '+logentry[1]+'</li>'
+		_content += '<li class="list-group-item">'
+		if logentry[2] != None:
+			_content += '<a href="'+logentry[2]+'">'
+		_content += logentry[0]+' – '+logentry[1]
+		if logentry[2] != None:
+			_content += '</a>'
+		_content += '</li>'
 	_content += '</ul>'
 	return bottle.template("home", title="NowPlaying :: malte70.de", current=_current,content=_content)
 
@@ -84,6 +95,7 @@ def api(apikey=None):
 		np_current_time = time.strftime('%Y-%m-%d %H:%M:%S')
 		np_interpreter  = MySQLdb.escape_string(bottle.request.forms.get("interpreter"))
 		np_title        = MySQLdb.escape_string(bottle.request.forms.get("title"))
+		np_link         = MySQLdb.escape_string(bottle.request.forms.get("link"))
 		# write track to the database
 		db = MySQLdb.connect(
 				host=CFG_MYSQL_HOST,
@@ -92,7 +104,7 @@ def api(apikey=None):
 				db=CFG_MYSQL_DB
 				)
 		db_curs = db.cursor()
-		db_curs.execute("INSERT INTO log VALUES (NULL, \""+np_current_time+"\", \""+np_interpreter+"\", \""+np_title+"\");")
+		db_curs.execute("INSERT INTO log VALUES (NULL, \""+np_current_time+"\", \""+np_interpreter+"\", \""+np_title+"\", \""+np_link+"\");")
 		db.commit()
 		db.close()
 		# if twitter is enabled, tweet the song!
@@ -101,9 +113,12 @@ def api(apikey=None):
 				consumer_key=CFG_TWITTER_CONSUMER_KEY,
 				consumer_secret=CFG_TWITTER_CONSUMER_SECRET,
 				access_token_key=CFG_TWITTER_ACCESS_TOKEN_KEY,
-				access_token_secret=CFG_TWITTER_ACCESS_TOKEN_SECRET = ""
+				access_token_secret=CFG_TWITTER_ACCESS_TOKEN_SECRET
 			)
-			tweet = "#NowPlaying "+bottle.request.forms.get("interpreter")+" - "+bottle.request.forms.get("title")+" via http://np.malte70.de"
+			tweet = "#NowPlaying "+bottle.request.forms.get("interpreter")+" - "+bottle.request.forms.get("title")
+			if bottle.request.forms.get("link")!=None:
+				tweet += " ("+bottle.request.forms.get("link")+")"
+			tweet += " via http://np.malte70.de"
 			api.PostUpdate(tweet)
 		return "Done.\n"
 
