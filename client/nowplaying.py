@@ -20,7 +20,7 @@ class NowPlayingClient(object):
 	"""
 	Client for NowPlaying
 	"""
-	" The API URL "
+	# The API URL
 	api_base_url = "http://np.malte70.de/api/"
 	def __init__(self, api_key):
 		self.api_key = api_key
@@ -58,9 +58,7 @@ def main():
 	if ret == "Done.\n":
 		sys.exit(0)
 	else:
-		"""
-		some debugging
-		"""
+		# some debugging
 		print "ERROR!\nServer response below:\n\n--BEGIN SERVER RESPONSE--"
 		print ret
 		print "--END SERVER RESPONSE--"
