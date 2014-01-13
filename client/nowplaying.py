@@ -53,7 +53,6 @@ def main():
 	else:
 		link = None
 	
-	global APIKEY
 	client = NowPlayingClient(APIKEY)
 	ret = client.sendTrack(interpreter, title, link)
 	if ret == "Done.\n":
